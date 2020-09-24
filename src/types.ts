@@ -1,6 +1,8 @@
 import { pipe } from "fp-ts/lib/function";
 import * as Option from "fp-ts/Option";
 
+type ForExtendHelper<T> = T;
+
 export type InclusiveOr<A, B> = A | B | (A & B);
 
 export type WithOrWithout<A, B> = A | (A & B);
@@ -46,15 +48,15 @@ export type Stats = Entity & {
   statistics: EntityStats;
 };
 
-export type OwnerOrAdminInfo = Entity & {
+export interface OwnerOrAdminInfo extends ForExtendHelper<Entity & {
   evaluation_status: EvaluationStatus;
   topic_submissions: { [topicSlug: string]: unknown };
-};
+}> { }
 
-export type OwnerInfo = OwnerOrAdminInfo & {
+export interface OwnerInfo extends ForExtendHelper<OwnerOrAdminInfo & {
   show_on_profile: boolean;
   user_tags: string[];
-};
+}> { }
 
 export type Location = {
   city: string | null;
@@ -66,13 +68,13 @@ export type Location = {
   };
 };
 
-export type BaseVeryBasic = Entity & {
+export interface BaseVeryBasic extends ForExtendHelper<Entity & {
   created_at: string;
   updated_at: string;
   urls: Urls;
-};
+}> { }
 
-export type BaseBasic = BaseVeryBasic & {
+export interface BaseBasic extends ForExtendHelper<BaseVeryBasic & {
   promoted_at: string | null;
   links: {
     html: string;
@@ -86,9 +88,9 @@ export type BaseBasic = BaseVeryBasic & {
   likes: number;
   liked_by_user: boolean;
   categories: {}[];
-};
+}> { }
 
-export type BaseFull = {
+export interface BaseFull extends ForExtendHelper<{
   exif: Exif;
   location: Location;
   related_collections: {
@@ -96,26 +98,26 @@ export type BaseFull = {
     total: number;
   };
   meta: { index: boolean };
-};
+}> { }
 
-export type VeryBasic = BaseVeryBasic;
+export interface VeryBasic extends ForExtendHelper<BaseVeryBasic> { }
 
-export type Basic = BaseBasic & {
+export interface Basic extends ForExtendHelper<BaseBasic & {
   user: unknown;
   current_user_collections?: unknown[];
   sponsorship: unknown | null;
-};
+}> { }
 
-export type BasicWithTags = Basic & {
+export interface BasicWithTags extends ForExtendHelper<Basic & {
   tags: unknown[];
-};
+}> { }
 
-export type Full = BaseFull &
+export interface Full extends ForExtendHelper<BaseFull &
   BasicWithTags & {
     related_collections: {
       results: unknown[];
     };
-  };
+  }> { }
 
 export type Union = InclusiveOr<
   | VeryBasic
@@ -123,6 +125,10 @@ export type Union = InclusiveOr<
   | WithOrWithout<Basic | Full, OwnerOrAdminInfo | OwnerInfo>,
   Stats
 >;
+
+// error interface can only extend an object type or intersection of object types with statically known members.
+// Not sure why
+// export interface UnionInterface extends Union { }
 
 // ❌ Generates a huge type
 export const checkIsVeryBasic = <T extends Union>(
